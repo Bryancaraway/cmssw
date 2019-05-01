@@ -7,7 +7,9 @@
 #include "RecoParticleFlow/PFProducer/interface/PFElectronExtraEqual.h"
 #include "RecoParticleFlow/PFTracking/interface/PFTrackAlgoTools.h"
 
+#include "RecoParticleFlow/PFClusterTools/interface/PFEnergyCalibration_Regression.h"
 #include "RecoParticleFlow/PFClusterTools/interface/PFEnergyCalibration.h"
+
 #include "RecoParticleFlow/PFClusterTools/interface/PFEnergyCalibrationHF.h"
 #include "RecoParticleFlow/PFClusterTools/interface/PFSCEnergyCalibration.h"
 
@@ -66,7 +68,9 @@ PFAlgo::PFAlgo()
     pfpho_(nullptr),
     pfegamma_(nullptr),
     useVertices_(false)
-{}
+{
+  calibrationRegression_ = std::make_unique<PFEnergyCalibration_Regression>();
+}
 
 PFAlgo::~PFAlgo() {
   if (usePFElectrons_) delete pfele_;
@@ -85,6 +89,7 @@ PFAlgo::setParameters(double nSigmaECAL,
   nSigmaHCAL_ = nSigmaHCAL;
 
   calibration_ = calibration;
+
   thepfEnergyCalibrationHF_ = thepfEnergyCalibrationHF;
 
 }
@@ -1517,7 +1522,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
 	double previousSlopeEcal = slopeEcal;
 	calibEcal = std::max(totalEcal,0.);
 	calibHcal = 0.;
-	calibration_->energyEmHad(trackMomentum,calibEcal,calibHcal,
+	calibrationRegression_->energyEmHadRegression(trackMomentum,calibEcal,calibHcal,
 				  clusterRef->positionREP().Eta(),
 				  clusterRef->positionREP().Phi());
 	if ( totalEcal > 0.) slopeEcal = calibEcal/totalEcal;
@@ -2271,7 +2276,7 @@ void PFAlgo::processBlock( const reco::PFBlockRef& blockref,
       calibHcal = std::max(0.,totalHcal);
       hadronAtECAL = calibHcal * hadronDirection;
       // Calibrate ECAL and HCAL energy under the hadron hypothesis.
-      calibration_->energyEmHad(totalChargedMomentum,calibEcal,calibHcal,
+      calibrationRegression_->energyEmHadRegression(totalChargedMomentum,calibEcal,calibHcal,
 				hclusterref->positionREP().Eta(),
 				hclusterref->positionREP().Phi());
       caloEnergy = calibEcal+calibHcal;

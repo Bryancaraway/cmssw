@@ -43,6 +43,7 @@
 
 
 class PFEnergyCalibration;
+class PFEnergyCalibration_Regression;
 class PFSCEnergyCalibration;
 class PFEnergyCalibrationHF;
 class PFElectronAlgo;
@@ -333,6 +334,7 @@ class PFAlgo {
   double             nSigmaHCAL_;
   
   boost::shared_ptr<PFEnergyCalibration>  calibration_;
+  std::unique_ptr<PFEnergyCalibration_Regression>  calibrationRegression_;
   boost::shared_ptr<PFEnergyCalibrationHF>  thepfEnergyCalibrationHF_;
   boost::shared_ptr<PFSCEnergyCalibration> thePFSCEnergyCalibration_;
 
